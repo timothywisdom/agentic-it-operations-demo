@@ -6,7 +6,7 @@ const TOOLS = [
   {
     name: "search_knowledge_base",
     isSensitive: false,
-    desc: "search docs and look up general knowledge",
+    desc: "search docs look up general knowledge",
   },
   {
     name: "execute_restart_script",
@@ -24,30 +24,40 @@ export async function classifyAndRoute(state: typeof AgentState.State) {
   const userMsgRaw = state.messages[state.messages.length - 1].content;
   const userMsg = userMsgRaw.toLowerCase();
 
-  // Explicit informational / read-only queries
+  // Action intents take priority over phrasing prefixes
   if (
-    userMsg.includes("how do i") ||
-    userMsg.includes("what is") ||
-    userMsg.includes("logs") ||
-    userMsg.includes("documentation")
+    userMsg.includes("vpn") ||
+    userMsg.includes("gateway") ||
+    userMsg.includes("tunnel")
   ) {
-    return { selectedTool: "search_knowledge_base", isSensitiveAction: false };
+    if (
+      userMsg.includes("reset") ||
+      userMsg.includes("toggle") ||
+      userMsg.includes("fix")
+    ) {
+      return { selectedTool: "toggle_vpn_gateway", isSensitiveAction: true };
+    }
   }
 
-  // Deterministic keyword routing for sensitive action commands
-  if (userMsg.includes("vpn") || userMsg.includes("tunnel")) {
-    return { selectedTool: "toggle_vpn_gateway", isSensitiveAction: true };
-  }
   if (
     userMsg.includes("restart") ||
     userMsg.includes("reboot") ||
-    userMsg.includes("reset") ||
-    userMsg.includes("deploy")
+    userMsg.includes("reset cluster")
   ) {
     return { selectedTool: "execute_restart_script", isSensitiveAction: true };
   }
 
-  // Fallback to semantic vector similarity
+  // Pure informational queries
+  if (
+    userMsg.includes("what is") ||
+    userMsg.includes("logs") ||
+    userMsg.includes("documentation") ||
+    userMsg.startsWith("how do i fix database")
+  ) {
+    return { selectedTool: "search_knowledge_base", isSensitiveAction: false };
+  }
+
+  // Semantic fallback
   const userVector = await generateEmbedding(userMsgRaw);
   let bestTool = TOOLS[0];
   let maxScore = -1;
@@ -71,6 +81,13 @@ export async function classifyAndRoute(state: typeof AgentState.State) {
 
 export async function retrieveChunksNode(state: typeof AgentState.State) {
   const userMsg = state.messages[state.messages.length - 1].content;
-  const result = await searchKnowledgeBase(userMsg);
-  return { retrievedChunks: result.chunks };
+  try {
+    const result = await searchKnowledgeBase(userMsg);
+    return { retrievedChunks: result.chunks };
+  } catch (err: any) {
+    return {
+      retrievedChunks: [],
+      finalResponse: `Fallback Warning: Service dependency unavailable. ${err.message || "System error standard recovery engaged."}`,
+    };
+  }
 }
