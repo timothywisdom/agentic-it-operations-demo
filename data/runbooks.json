@@ -1,0 +1,14 @@
+[
+    {
+      "id": "runbook-101",
+      "title": "Database High CPU & Failover Protocol",
+      "content": "In case of primary database high CPU usage (>90%) for over 5 minutes, run the emergency restart script with parameters target=staging or target=prod. Requires operator confirmation.",
+      "category": "database"
+    },
+    {
+      "id": "runbook-402",
+      "title": "VPN Gateway Outage & Tunnel Reset",
+      "content": "If internal VPN gateway drops connections, execute the VPN gateway toggle tool to flush active tunnels and restart IPSec services.",
+      "category": "networking"
+    }
+  ]

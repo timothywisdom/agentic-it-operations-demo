@@ -1,0 +1,12 @@
+[
+    {
+      "query": "How do I fix database high CPU usage?",
+      "expected_chunk_id": "runbook-101",
+      "expected_tool": "execute_restart_script"
+    },
+    {
+      "query": "The VPN gateway dropped connections, how do I reset it?",
+      "expected_chunk_id": "runbook-402",
+      "expected_tool": "toggle_vpn_gateway"
+    }
+  ]
